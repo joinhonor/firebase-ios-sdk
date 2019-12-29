@@ -50,12 +50,15 @@
   GDTCORAssert(event, @"You can't write a nil event");
 
   __block GDTCORBackgroundIdentifier bgID = GDTCORBackgroundIdentifierInvalid;
-  bgID = [[GDTCORApplication sharedApplication]
-      beginBackgroundTaskWithName:@"GDTTransformer"
-                expirationHandler:^{
-                  [[GDTCORApplication sharedApplication] endBackgroundTask:bgID];
-                  bgID = GDTCORBackgroundIdentifierInvalid;
-                }];
+
+  dispatch_async(dispatch_get_main_queue(), ^{
+    bgID = [[GDTCORApplication sharedApplication]
+        beginBackgroundTaskWithName:@"GDTTransformer"
+                  expirationHandler:^{
+                    [[GDTCORApplication sharedApplication] endBackgroundTask:bgID];
+                    bgID = GDTCORBackgroundIdentifierInvalid;
+                  }];
+  });
   dispatch_async(_eventWritingQueue, ^{
     GDTCOREvent *transformedEvent = event;
     for (id<GDTCOREventTransformer> transformer in transformers) {
